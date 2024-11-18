@@ -4,7 +4,9 @@ import './assets/styles/main.scss';
 export default function App() {
    return (
       <>
-         <Map></Map>
+         <main>
+            <Map></Map>
+         </main>
       </>
    );
 }
