@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
+import 'leaflet-routing-machine';
+import 'leaflet-control-geocoder';
 
 const RoutingControl: React.FC = () => {
    const map = useMap();
@@ -10,12 +12,27 @@ const RoutingControl: React.FC = () => {
    useEffect(() => {
       if (!map) return;
 
-      // Initialize the routing control but don't add any waypoints initially
+      //Add the routing control
       const control = L.Routing.control({
-         waypoints: [],
-         routeWhileDragging: true,
+         waypoints: [], //start without any waypoints
+         routeWhileDragging: true, //point between the initial route
+         reverseWaypoints: true,
+         geocoder: L.Control.Geocoder.nominatim({ suggest: true }), //user location input, suggests location
       }).addTo(map);
 
+      control.on('routesfound', (e) => {
+         const { routes } = e;
+         const route = routes[0]; // Taking the first route
+         const { summary } = route;
+
+         // Log distance and time
+         if (summary) {
+            console.log(`Route distance: ${summary.totalDistance} meters`);
+            console.log(`Route time: ${summary.totalTime} seconds`);
+         }
+      });
+
+      L.Routing.errorControl(control).addTo(map);
       setRoutingControl(control);
 
       return () => {
