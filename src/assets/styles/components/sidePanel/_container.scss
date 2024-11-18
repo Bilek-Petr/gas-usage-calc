@@ -1,0 +1,9 @@
+.leaflet-routing-container {
+   background-color: rgb(240, 240, 240);
+   height: 100vh;
+}
+
+//specificity is lower than default
+.leaflet-bar {
+   border: 2px solid red;
+}
