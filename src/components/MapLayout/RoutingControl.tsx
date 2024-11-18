@@ -1,30 +1,55 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
 
-interface RoutingControlProps {
-   waypoints: [number, number][];
-}
-
-const RoutingControl: React.FC<RoutingControlProps> = ({ waypoints }) => {
+const RoutingControl: React.FC = () => {
    const map = useMap();
+   const [waypoints, setWaypoints] = useState<L.LatLng[]>([]);
+   const [routingControl, setRoutingControl] = useState<L.Routing.Control | null>(null);
 
    useEffect(() => {
       if (!map) return;
 
-      // Create and add the routing control
-      const routingControl = L.Routing.control({
-         waypoints: waypoints.map((coords) => L.latLng(coords[0], coords[1])),
+      // Initialize the routing control but don't add any waypoints initially
+      const control = L.Routing.control({
+         waypoints: [],
          routeWhileDragging: true,
       }).addTo(map);
 
-      // Cleanup function to remove the routing control properly
+      setRoutingControl(control);
+
       return () => {
-         if (routingControl) {
-            map.removeControl(routingControl);
+         if (control) {
+            map.removeControl(control);
          }
       };
-   }, [map, waypoints]);
+   }, [map]);
+
+   useEffect(() => {
+      if (routingControl && waypoints.length > 0) {
+         routingControl.setWaypoints(waypoints);
+      }
+   }, [waypoints, routingControl]);
+
+   useEffect(() => {
+      if (!map) return;
+
+      const handleMapClick = (e: L.LeafletMouseEvent) => {
+         const newPoint = L.latLng(e.latlng.lat, e.latlng.lng);
+
+         // Add the new waypoint to the state
+         setWaypoints((prev) => {
+            const updatedWaypoints = [...prev, newPoint];
+            return updatedWaypoints.slice(0, 2); // Limit to 2 waypoints
+         });
+      };
+
+      map.on('click', handleMapClick);
+
+      return () => {
+         map.off('click', handleMapClick);
+      };
+   }, [map]);
 
    return null;
 };
